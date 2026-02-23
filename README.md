@@ -14,15 +14,45 @@ This is created based on the version **scarthgap**
     ```
     git submodule add -b scarthgap git://git.yoctoproject.org/meta-raspberrypi layers/meta-raspberrypi
     ```
-3. 
+---
 
 Run the build setup
 
-`source oe-init-build-env ../../build`
+```
+source oe-init-build-env ../../build
+```
+---
+ONLY in the beginning!! 
+**DON'T RUN AGAIN** 
 
-
-ONLY in the beginning!!
-DON'T RUN AGAIN
 ```
 bitbake-layers create-layer ../layers/meta-rust-app
+bitbake-layers add-layer ../layers/meta-rust-app/
 ```
+---
+Check if layers are properly added
+```
+bitbake-layers show-layers
+```
+---
+---
+
+### INITIAL Setup
+
+**TEMPLATECONF** setup
+
+```
+mkdir -p layers/meta-rust-app/conf/templates/rpi-headless
+```
+1. machine and feature removals are put here: 
+
+    `layers/meta-rust-app/conf/templates/rpi-headless/local.conf.sample`
+
+2. the layers that must be active: 
+
+    `layers/meta-rust-app/conf/templates/rpi-headless/bblayers.conf.sample`
+
+
+
+
+

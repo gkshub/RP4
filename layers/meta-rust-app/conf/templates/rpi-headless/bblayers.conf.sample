@@ -1,0 +1,8 @@
+LCONF_VERSION = "7"
+BBPATH = "${TOPDIR}"
+BBFILES ?= ""
+BBLAYERS ?= " \
+  ##OECORE##/meta \
+  ##OECORE##/../meta-raspberrypi \
+  ##OECORE##/../meta-rust-app \
+  "
