@@ -6,3 +6,6 @@
 	path = layers/meta-raspberrypi
 	url = git://git.yoctoproject.org/meta-raspberrypi
 	branch = scarthgap
+[submodule "apps/my-rust-library-app"]
+	path = apps/my-rust-library-app
+	url = https://github.com/gkshub/my-rust-library-app.git
