@@ -2,6 +2,40 @@
 
 Aim: Rust program in RP4 based on Yocto
 
+Folder Structure
+
+```
+.
+├── apps
+│   └── my-rust-library-app
+├── bitbake-cookerdaemon.log
+├── build
+│   ├── bitbake-cookerdaemon.log
+│   ├── cache
+│   ├── conf
+│   └── tmp
+├── cache
+├── common
+│   ├── downloads
+│   └── sstate-cache
+├── docker
+│   └── Dockerfile
+├── layers
+│   ├── meta-raspberrypi
+│   ├── meta-rust-app
+│   └── poky
+└── README.md
+```
+
+### setting up Docker environment
+
+Run the Dockerfile on the host machine to create the docker container.
+
+docker build -t yocto-rust-builder ./docker
+
+docker run -it --rm -v $(pwd):/work yocto-rust-builder
+
+
 ### Setting Up the Repo
 
 This is created based on the version **scarthgap**
@@ -60,16 +94,61 @@ poky/meta-poky/conf/templates/default/local.conf.sample
 
 ### Configure Rust Project
 
-layers/meta-rust-app/recipes-example/my-rust-library-app
 
-bb file: layers/meta-rust-app/recipes-example/my-rust-library-app/my-rust-library-app_0_1.bb
+1. Yocto supports only edition = "2021" -> cargo.toml edited.
+2. axum crate was not available to so edited .bb file 
+    
+    # We tell the recipe to look for a second file that will hold the crate list
+    include my-rust-library-app-crates.inc
 
-To avoid the folder level error I have configured in bb file
+    touch my-rust-library-app-crates.inc
 
+    Populate the .inc file
+    ```
+    bitbake -c update_crates my-rust-library-app 
+    ```
+
+This can be used only to trigger app build
+    ```
+    bitbake my-rust-library-app
+    ```
+    
+3. How to solve the lock version difference due to rust version difference.
+
+# Go to the app folder
 ```
-FILESEXTRAPATHS:prepend := "${THISDIR}:"
+cd /work/apps/my-rust-library-app
 ```
 
+# Delete the incompatible lockfile
+```
+rm Cargo.lock 
+rm -rf target
+```
+
+# Generate a fresh one using the container's Cargo 1.75
+```
+cargo generate-lockfile 
+```
+
+### IMPORTANT!!!!
+
+This sets the home, generates the lock, and then the variable disappears.
+
+Conflict arises because Cargo and Yocto use **CARGO_HOME** for two different, 
+incompatible purposes during the build process.
+```
+CARGO_HOME=/work/apps/cargo_cache_safe cargo generate-lockfile
+```
+
+### different approch using cargo vendor
+
+CARGO_HOME=/work/apps/cargo_cache_safe cargo vendor
+```
+
+
+Both DL_DIR and SSTATE_DIR are in a common folder outside build
+local.conf is updated.
 
 The special project releated configuration are being done in the meta-rust-app layer so it should be informed to bitbake system before triggering build
 ```

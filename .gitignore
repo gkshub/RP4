@@ -1,2 +1,4 @@
 # Build artifacts
 /build/
+common/
+apps/cargo_cache_safe/

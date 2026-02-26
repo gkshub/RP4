@@ -2,19 +2,37 @@ SUMMARY = "Small Rust Hello World for RPi"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
-# This tells BitBake to use the Cargo build system
-inherit cargo
-FILESEXTRAPATHS:prepend := "${THISDIR}:"
-# Point to the local source directory
-SRC_URI = "file://Cargo.toml \
-           file://src/main.rs"
+inherit cargo externalsrc
 
-# For local files, we need to set the S (Source) directory
-S = "${WORKDIR}"
+# Point to your source
+EXTERNALSRC = "${THISDIR}/../../../../apps/my-rust-library-app"
+S = "${EXTERNALSRC}"
 
-# Since it's a simple local build, we don't need a checksum for a git repo
-# but we do need to ensure the structure is correct for Cargo
+# Prevent the symlink error you just saw
+EXTERNALSRC_SYMLINKS = ""
+
+# Keep build artifacts out of your source tree
+EXTERNALSRC_BUILD = "${WORKDIR}/build"
+
+# This solves the lock version difference due to rust version difference.
+
 do_configure:prepend() {
-    mkdir -p ${S}/src
-    cp ${WORKDIR}/main.rs ${S}/src/
+    # 1. Create the .cargo directory in your source tree
+    mkdir -p ${S}/.cargo
+
+    # 2. Write the config.toml file
+    cat << EOF > ${S}/.cargo/config.toml
+[source.crates-io]
+replace-with = "vendored-sources"
+
+[source."git+https://github.com/rust-lang/cargo?tag=home-0.5.9"]
+git = "https://github.com/rust-lang/cargo"
+tag = "home-0.5.9"
+replace-with = "vendored-sources"
+
+[source."git+https://github.com/rust-random/getrandom?tag=v0.2.15"]
+git = "https://github.com/rust-random/getrandom"
+tag = "v0.2.15"
+replace-with = "vendored-sources"
+EOF
 }
